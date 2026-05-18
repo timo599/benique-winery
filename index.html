@@ -1781,6 +1781,54 @@ tr:hover td { background: var(--bg-hover); }
   </div>
 </div>
 
+<!-- ===== MODAL: NEUE RECHNUNG ===== -->
+<div class="modal-overlay" id="modal-neue-rechnung">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🧾 Neue Rechnung</div><button class="modal-close" onclick="closeModal('modal-neue-rechnung')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Rechnungsnummer</label><input id="re-nr" placeholder="RE-0001" /></div>
+        <div class="form-group"><label>Datum <span class="required">*</span></label><input id="re-datum" type="date" /></div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Kunde <span class="required">*</span></label><select id="re-kunde"><option value="">– Kunde wählen –</option></select></div>
+        <div class="form-group"><label>Fälligkeitsdatum</label><input id="re-faellig" type="date" /></div>
+      </div>
+      <div class="form-row cols-3">
+        <div class="form-group"><label>Betrag netto (€) <span class="required">*</span></label><input id="re-netto" type="number" step="0.01" placeholder="0.00" oninput="calcRechnungBrutto()" /></div>
+        <div class="form-group"><label>MwSt. (%)</label><input id="re-mwst" type="number" value="19" oninput="calcRechnungBrutto()" /></div>
+        <div class="form-group"><label>Brutto (€)</label><input id="re-brutto" type="number" step="0.01" placeholder="0.00" readonly style="background:#f5f5f7;color:var(--gold);font-weight:700" /></div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Betreff / Leistung</label><input id="re-betreff" placeholder="z.B. Weinlieferung Jahrgang 2025" /></div>
+        <div class="form-group"><label>Zahlungsstatus</label><select id="re-status"><option value="Offen">Offen</option><option value="Bezahlt">Bezahlt</option></select></div>
+      </div>
+      <div class="form-group"><label>Notizen</label><textarea id="re-notizen" rows="2" placeholder="Interne Anmerkungen..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-neue-rechnung')">Abbrechen</button><button class="btn btn-primary" onclick="saveRechnung()">💾 Speichern</button></div>
+  </div>
+</div>
+
+<!-- ===== MODAL: NEUES DOKUMENT ===== -->
+<div class="modal-overlay" id="modal-neues-dokument">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">📁 Dokument hinzufügen</div><button class="modal-close" onclick="closeModal('modal-neues-dokument')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Dokumentenname <span class="required">*</span></label><input id="dok-name" placeholder="z.B. Betriebsprüfung 2025" /></div>
+        <div class="form-group"><label>Datum</label><input id="dok-datum" type="date" /></div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Kategorie</label><select id="dok-kat"><option>Behörde</option><option>Zertifikat</option><option>Vertrag</option><option>Analyse</option><option>Rechnung</option><option>Sonstiges</option></select></div>
+        <div class="form-group"><label>Dateityp</label><select id="dok-typ"><option>PDF</option><option>Word</option><option>Excel</option><option>Bild</option><option>Sonstiges</option></select></div>
+      </div>
+      <div class="form-group"><label>Ablageort / Link</label><input id="dok-pfad" placeholder="Ordner, URL oder Beschreibung des Speicherorts" /></div>
+      <div class="form-group"><label>Notiz</label><textarea id="dok-notiz" rows="2" placeholder="Kurze Beschreibung des Dokuments..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-neues-dokument')">Abbrechen</button><button class="btn btn-primary" onclick="saveDokument()">💾 Speichern</button></div>
+  </div>
+</div>
+
 
 <script>
 // ============================================================
@@ -1911,7 +1959,13 @@ function populateModalSelects(id) {
   });
   // auto-Nr.
   if(id==='modal-neues-angebot') { const el=document.getElementById('ang-nr'); if(el) el.value='ANG-'+(DB.angebote.length+1).toString().padStart(4,'0'); }
-  if(id==='modal-neue-rechnung') { /* handled separately */ }
+  if(id==='modal-neue-rechnung') {
+    fill('re-kunde', kundenOpts, '<option value="">– Kunde wählen –</option>');
+    const nrEl=document.getElementById('re-nr');
+    if(nrEl&&!nrEl.value) nrEl.value='RE-'+(DB.rechnungen.length+1).toString().padStart(4,'0');
+    const datEl=document.getElementById('re-datum');
+    if(datEl&&!datEl.value) datEl.value=new Date().toISOString().split('T')[0];
+  }
 }
 
 // ── ACTIVITY LOG ─────────────────────────────────────────────
@@ -1987,9 +2041,32 @@ function saveFlaeche() {
     erstellt: new Date().toISOString(), erstelltVon: currentUser.vorname
   };
   if(!f.lage||!f.sorte) return alert('Lage und Rebsorte sind Pflichtfelder.');
-  const arr = DB.flaechen; arr.push(f); DB.flaechen = arr;
-  logActivity('Neue Rebfläche', f.lage+' – '+f.sorte+' ('+f.flaeche+' ha)', 'green');
+  if(window._editFlaecheId) {
+    const arr = DB.flaechen;
+    const idx = arr.findIndex(x=>x.id===window._editFlaecheId);
+    if(idx>=0) { f.id=window._editFlaecheId; arr[idx]=f; } else arr.push(f);
+    DB.flaechen=arr; window._editFlaecheId=null;
+    logActivity('Rebfläche bearbeitet', f.lage+' – '+f.sorte, 'gold');
+  } else {
+    const arr = DB.flaechen; arr.push(f); DB.flaechen = arr;
+    logActivity('Neue Rebfläche', f.lage+' – '+f.sorte+' ('+f.flaeche+' ha)', 'green');
+  }
   closeModal('modal-neue-flaeche'); renderFlaechen(); resetForm('modal-neue-flaeche');
+}
+
+function editFlaeche(id) {
+  const f = DB.flaechen.find(x=>x.id===id); if(!f) return;
+  window._editFlaecheId = id;
+  const set = (el,val) => { const e=document.getElementById(el); if(e) e.value=val||''; };
+  set('fl-lage',f.lage); set('fl-sorte',f.sorte); set('fl-flaeche',f.flaeche);
+  set('fl-pflanzjahr',f.pflanzjahr); set('fl-unterlage',f.unterlage);
+  set('fl-erziehung',f.erziehung); set('fl-boden',f.boden);
+  set('fl-exposition',f.exposition); set('fl-gemarkung',f.gemarkung);
+  set('fl-flurstueck',f.flurstueck); set('fl-zeilenabstand',f.zeilenabstand);
+  set('fl-notizen',f.notizen);
+  const title = document.querySelector('#modal-neue-flaeche .modal-title');
+  if(title) title.textContent='✏️ Rebfläche bearbeiten';
+  openModal('modal-neue-flaeche');
 }
 
 function renderFlaechen() {
@@ -2499,6 +2576,35 @@ function angebotZuRechnung(id) {
   renderAngebote(); renderRechnungen(); updateRechnungKPIs(); showPage('vertrieb');
 }
 
+function calcRechnungBrutto() {
+  const netto = parseFloat(document.getElementById('re-netto')?.value)||0;
+  const mwst  = parseFloat(document.getElementById('re-mwst')?.value)||0;
+  const brutto = (netto * (1 + mwst/100)).toFixed(2);
+  const el = document.getElementById('re-brutto'); if(el) el.value = brutto;
+}
+
+function saveRechnung() {
+  const nr    = v('re-nr') || 'RE-'+(DB.rechnungen.length+1).toString().padStart(4,'0');
+  const datum = v('re-datum'); if(!datum) return alert('Datum ist ein Pflichtfeld.');
+  const kundeEl = document.getElementById('re-kunde');
+  const kundeId = kundeEl?.value;
+  const kundeName = kundeEl?.options[kundeEl.selectedIndex]?.text || v('re-kunde');
+  const netto  = parseFloat(v('re-netto')||0);
+  const mwst   = parseFloat(v('re-mwst')||19);
+  const brutto = (netto*(1+mwst/100)).toFixed(2);
+  if(!netto) return alert('Netto-Betrag ist ein Pflichtfeld.');
+  const r = {
+    id: Date.now().toString(), nr, datum, faellig: v('re-faellig'),
+    kundeId, kundeName, netto: netto.toFixed(2), mwst, brutto,
+    betreff: v('re-betreff'), status: v('re-status')||'Offen',
+    notizen: v('re-notizen'), erstellt: new Date().toISOString()
+  };
+  const arr = DB.rechnungen; arr.push(r); DB.rechnungen = arr;
+  logActivity('Neue Rechnung', `${r.nr} – ${r.kundeName} (${r.brutto} €)`, 'gold');
+  closeModal('modal-neue-rechnung'); resetForm('modal-neue-rechnung');
+  renderRechnungen(); updateRechnungKPIs();
+}
+
 function renderRechnungen() {
   const data=DB.rechnungen.slice().reverse();
   updateRechnungKPIs();
@@ -2764,6 +2870,21 @@ function filterAufgaben(filter) {
 }
 
 // ── DOKUMENTE ─────────────────────────────────────────────────
+function saveDokument() {
+  const name = v('dok-name'); if(!name) return alert('Dokumentenname ist ein Pflichtfeld.');
+  const d = {
+    id: Date.now().toString(), name,
+    datum: v('dok-datum') || new Date().toISOString().split('T')[0],
+    kat: v('dok-kat')||'Sonstiges', typ: v('dok-typ')||'PDF',
+    pfad: v('dok-pfad'), notiz: v('dok-notiz'),
+    erstellt: new Date().toISOString(), erstelltVon: currentUser.vorname
+  };
+  const arr = DB.dokumente; arr.push(d); DB.dokumente = arr;
+  logActivity('Dokument hinzugefügt', `${d.name} (${d.kat})`, 'gold');
+  closeModal('modal-neues-dokument'); resetForm('modal-neues-dokument');
+  renderDokumente();
+}
+
 function renderDokumente() {
   const data=DB.dokumente;
   const body=document.getElementById('dokumente-body');
