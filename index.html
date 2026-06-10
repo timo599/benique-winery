@@ -563,6 +563,40 @@ tr:hover td { background: var(--bg-hover); }
   .grid-4 { grid-template-columns: repeat(2,1fr); }
   .grid-3 { grid-template-columns: repeat(2,1fr); }
 }
+
+/* ===== CRM Pipeline ===== */
+.pipeline-board { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+.pipeline-col { min-width: 200px; flex: 1; background: var(--bg-deep); border-radius: var(--radius); padding: 12px; }
+.pipeline-col-header { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim); margin-bottom: 10px; display: flex; justify-content: space-between; }
+.pipeline-col-header .count { background: var(--gold); color: #fff; border-radius: 10px; padding: 1px 7px; font-size: 11px; }
+.deal-card { background: var(--bg-card); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 8px; box-shadow: var(--shadow-card); cursor: pointer; border-left: 3px solid var(--gold); }
+.deal-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,92,191,.15); }
+.deal-card .deal-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+.deal-card .deal-meta { font-size: 11px; color: var(--text-dim); display: flex; gap: 8px; flex-wrap: wrap; }
+.deal-card .deal-wert { font-weight: 700; color: var(--gold); }
+.deal-stage-btns { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+.deal-stage-btn { font-size: 10px; padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-deep); color: var(--text-dim); cursor: pointer; }
+.deal-stage-btn:hover { background: var(--gold); color: #fff; border-color: var(--gold); }
+
+/* ===== CRM Aktivitäten ===== */
+.aktivitaet-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.aktivitaet-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.aktivitaet-body { flex: 1; }
+.aktivitaet-body .betreff { font-weight: 600; font-size: 13px; }
+.aktivitaet-body .meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+/* ===== CRM 360° Detail ===== */
+.crm-detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.crm-detail-box { background: var(--bg-deep); border-radius: var(--radius-sm); padding: 14px; }
+.crm-detail-box .box-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim); margin-bottom: 8px; }
+.crm-detail-box .box-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; border-bottom: 1px solid var(--border); }
+.crm-timeline { margin-top: 8px; }
+.crm-timeline-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+
+/* ===== Wix Status ===== */
+.wix-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.wix-status.connected { background: #e6f9f0; color: #1a8a4a; }
+.wix-status.disconnected { background: #fef0f0; color: #c0392b; }
 </style>
 </head>
 <body>
@@ -614,6 +648,9 @@ tr:hover td { background: var(--bg-hover); }
     </div>
     <div class="nav-item" onclick="showPage('vertrieb')" data-page="vertrieb">
       <span class="icon">🛒</span><span class="label">Vertrieb</span>
+    </div>
+    <div class="nav-item" onclick="showPage('crm')" data-page="crm">
+      <span class="icon">👥</span><span class="label">CRM</span>
     </div>
     <div class="nav-item" onclick="showPage('buchhaltung')" data-page="buchhaltung">
       <span class="icon">💶</span><span class="label">Buchhaltung</span>
@@ -1208,6 +1245,134 @@ tr:hover td { background: var(--bg-hover); }
             <tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text-muted)">Keine Produkte angelegt</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- =============================== CRM =============================== -->
+<div class="page" id="page-crm">
+  <div class="page-header">
+    <div><div class="page-title">👥 CRM</div><div class="page-title sub">Pipeline, Kontakte, Aktivitäten &amp; Wix Sync</div></div>
+    <div class="page-actions">
+      <button class="btn btn-secondary btn-sm" onclick="openModal('modal-neue-aktivitaet')">+ Aktivität</button>
+      <button class="btn btn-secondary btn-sm" onclick="openModal('modal-neuer-crm-kontakt')">+ Kontakt</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-neuer-deal')">+ Deal</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('crm','pipeline')">Pipeline</div>
+    <div class="tab" onclick="switchTab('crm','kontakte')">Kontakte</div>
+    <div class="tab" onclick="switchTab('crm','aktivitaeten')">Aktivitäten</div>
+    <div class="tab" onclick="switchTab('crm','wix')">Wix Sync</div>
+  </div>
+
+  <!-- TAB: Pipeline -->
+  <div class="tab-content active" id="crm-pipeline">
+    <!-- KPI-Leiste -->
+    <div class="grid grid-4" style="margin-bottom:16px">
+      <div class="kpi"><div class="label">Deals gesamt</div><div class="value" id="crm-kpi-deals">0</div></div>
+      <div class="kpi"><div class="label">Gesamtwert Pipeline</div><div class="value wine" id="crm-kpi-wert">0 €</div></div>
+      <div class="kpi"><div class="label">Gewonnen (Monat)</div><div class="value green" id="crm-kpi-gewonnen">0 €</div></div>
+      <div class="kpi"><div class="label">Conversion Rate</div><div class="value" id="crm-kpi-conv">0 %</div></div>
+    </div>
+    <!-- Kanban Board -->
+    <div class="pipeline-board" id="crm-kanban-board">
+      <!-- Rendered by renderCrmPipeline() -->
+    </div>
+  </div>
+
+  <!-- TAB: Kontakte -->
+  <div class="tab-content" id="crm-kontakte">
+    <div class="card">
+      <div class="flex-center gap-8" style="margin-bottom:14px;flex-wrap:wrap">
+        <div class="search-bar"><input type="text" id="crm-kontakte-search" placeholder="Suche Kontakt..." oninput="renderCrmKontakte()"></div>
+        <select id="crm-kontakte-typ" style="padding:7px 10px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:var(--radius)" onchange="renderCrmKontakte()">
+          <option value="">Alle Typen</option>
+          <option>Privat</option><option>Gastronomie</option><option>Handel</option><option>Lead</option><option>Weiterverkauf</option>
+        </select>
+        <input type="text" id="crm-kontakte-tag" placeholder="Tag filtern..." style="padding:7px 10px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:var(--radius);font-size:13px;outline:none" oninput="renderCrmKontakte()">
+        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openModal('modal-neuer-crm-kontakt')">+ Kontakt</button>
+      </div>
+      <div class="table-wrap">
+        <table id="tbl-crm-kontakte">
+          <thead><tr><th>Name</th><th>Firma</th><th>Position</th><th>Email</th><th>Tel</th><th>Typ</th><th>Tags</th><th>Letzter Kontakt</th><th>Zuständig</th><th>Aktionen</th></tr></thead>
+          <tbody id="crm-kontakte-body">
+            <tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text-muted)">Keine Kontakte</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Aktivitäten -->
+  <div class="tab-content" id="crm-aktivitaeten">
+    <div class="card">
+      <div class="flex-center gap-8" style="margin-bottom:14px;flex-wrap:wrap">
+        <select id="crm-akt-filter" style="padding:7px 10px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:var(--radius)" onchange="renderCrmAktivitaeten()">
+          <option value="">Alle</option>
+          <option value="Anruf">📞 Anruf</option>
+          <option value="E-Mail">📧 E-Mail</option>
+          <option value="Meeting">🤝 Meeting</option>
+          <option value="Notiz">📝 Notiz</option>
+          <option value="Aufgabe">✅ Aufgabe</option>
+        </select>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openModal('modal-neue-aktivitaet')">+ Aktivität</button>
+      </div>
+      <div id="crm-aktivitaeten-list">
+        <div class="empty-state"><div class="icon">📋</div><p>Keine Aktivitäten vorhanden</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Wix Sync -->
+  <div class="tab-content" id="crm-wix">
+    <div class="grid grid-2" style="gap:20px">
+      <div class="card">
+        <div class="card-title"><span class="icon">🔌</span> Wix Verbindung</div>
+        <div style="margin-bottom:16px;display:flex;align-items:center;gap:10px">
+          <span>Status:</span>
+          <span id="wix-status-badge" class="wix-status disconnected">● Nicht verbunden</span>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Wix API Key</label>
+            <input type="password" id="wix-api-key" placeholder="IST2.eyJraWQiOiJ..." autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Wix Site ID</label>
+            <input type="text" id="wix-site-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="wixTestVerbindung()">🔍 Verbindung testen</button>
+          <button class="btn btn-primary" onclick="saveWixConfig()">💾 Speichern</button>
+        </div>
+        <div class="alert alert-info" style="margin-top:14px;font-size:12px">
+          🔒 Der API Key wird ausschließlich in deinem Browser (localStorage) gespeichert und niemals an Dritte übertragen.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🔄</span> Daten importieren</div>
+        <div style="margin-bottom:16px;font-size:13px;color:var(--text-dim)">
+          Letzter Sync: <strong id="wix-last-sync">—</strong>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="padding:14px;background:var(--bg-deep);border-radius:var(--radius-sm)">
+            <div style="font-weight:600;font-size:13px;margin-bottom:6px">👤 Kontakte importieren</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">Importiert alle Wix-Kontakte und fügt sie als Kunden ein (keine Duplikate per E-Mail).</div>
+            <button class="btn btn-secondary btn-sm" onclick="wixImportKontakte()">📥 Kontakte importieren</button>
+          </div>
+          <div style="padding:14px;background:var(--bg-deep);border-radius:var(--radius-sm)">
+            <div style="font-weight:600;font-size:13px;margin-bottom:6px">🛒 Bestellungen importieren</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">Importiert Wix-Bestellungen als Rechnungen (keine Duplikate per Bestell-ID).</div>
+            <button class="btn btn-secondary btn-sm" onclick="wixImportBestellungen()">📥 Bestellungen importieren</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1886,6 +2051,271 @@ tr:hover td { background: var(--bg-hover); }
   </div>
 </div>
 
+<!-- ===== MODAL: Neuer Deal ===== -->
+<div class="modal-overlay" id="modal-neuer-deal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">💼 Neuer Deal</div>
+      <button class="modal-close" onclick="closeModal('modal-neuer-deal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label>Titel <span class="required">*</span></label>
+          <input type="text" id="deal-titel" placeholder="z.B. Gastro-Liefervertrag 2026">
+        </div>
+        <div class="form-group">
+          <label>Kontakt / Kunde</label>
+          <select id="deal-kunde"></select>
+        </div>
+      </div>
+      <div class="form-row cols-3">
+        <div class="form-group">
+          <label>Wert (€)</label>
+          <input type="number" id="deal-wert" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Stage</label>
+          <select id="deal-stage">
+            <option>Neu</option><option>Kontaktiert</option><option>Qualifiziert</option>
+            <option>Angebot gesendet</option><option>Verhandlung</option><option>Gewonnen</option><option>Verloren</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fällig am</label>
+          <input type="date" id="deal-faellig">
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label>Zuständiger</label>
+          <select id="deal-zustaendiger"></select>
+        </div>
+        <div class="form-group">
+          <label>Notiz</label>
+          <input type="text" id="deal-notiz" placeholder="Interne Notiz...">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-neuer-deal')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveDeal()">💾 Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Neuer CRM-Kontakt ===== -->
+<div class="modal-overlay" id="modal-neuer-crm-kontakt">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-header">
+      <div class="modal-title">👤 Neuer CRM-Kontakt</div>
+      <button class="modal-close" onclick="closeModal('modal-neuer-crm-kontakt')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label>Vorname <span class="required">*</span></label>
+          <input type="text" id="crm-k-vorname" placeholder="Max">
+        </div>
+        <div class="form-group">
+          <label>Nachname <span class="required">*</span></label>
+          <input type="text" id="crm-k-nachname" placeholder="Mustermann">
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label>Firma</label>
+          <input type="text" id="crm-k-firma" placeholder="Mustermann GmbH">
+        </div>
+        <div class="form-group">
+          <label>Position</label>
+          <input type="text" id="crm-k-position" placeholder="Einkäufer">
+        </div>
+      </div>
+      <div class="form-row cols-3">
+        <div class="form-group">
+          <label>E-Mail</label>
+          <input type="email" id="crm-k-email" placeholder="max@example.com">
+        </div>
+        <div class="form-group">
+          <label>Telefon</label>
+          <input type="text" id="crm-k-tel" placeholder="+49 7531 ...">
+        </div>
+        <div class="form-group">
+          <label>Mobil</label>
+          <input type="text" id="crm-k-mobil" placeholder="+49 151 ...">
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label>Adresse</label>
+          <input type="text" id="crm-k-adresse" placeholder="Hauptstr. 1, 78462 Konstanz">
+        </div>
+        <div class="form-group">
+          <label>Typ</label>
+          <select id="crm-k-typ">
+            <option>Privat</option><option>Gastronomie</option><option>Handel</option><option>Lead</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label>Tags (kommagetrennt)</label>
+          <input type="text" id="crm-k-tags" placeholder="VIP, Stammkunde, Sommer">
+        </div>
+        <div class="form-group">
+          <label>Zuständiger</label>
+          <select id="crm-k-zustaendiger"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Notiz</label>
+          <textarea id="crm-k-notiz" placeholder="Interne Notizen..."></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Wix-Kontakt-ID (readonly)</label>
+          <input type="text" id="crm-k-wixid" placeholder="Automatisch bei Wix-Import" readonly style="color:var(--text-muted)">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-neuer-crm-kontakt')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveCrmKontakt()">💾 Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Neue Aktivität ===== -->
+<div class="modal-overlay" id="modal-neue-aktivitaet">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📋 Neue Aktivität</div>
+      <button class="modal-close" onclick="closeModal('modal-neue-aktivitaet')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Typ <span class="required">*</span></label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="akt-typ-radios">
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-deep)">
+              <input type="radio" name="akt-typ" value="Anruf" checked style="accent-color:var(--gold)"> 📞 Anruf
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-deep)">
+              <input type="radio" name="akt-typ" value="E-Mail" style="accent-color:var(--gold)"> 📧 E-Mail
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-deep)">
+              <input type="radio" name="akt-typ" value="Meeting" style="accent-color:var(--gold)"> 🤝 Meeting
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-deep)">
+              <input type="radio" name="akt-typ" value="Notiz" style="accent-color:var(--gold)"> 📝 Notiz
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-deep)">
+              <input type="radio" name="akt-typ" value="Aufgabe" style="accent-color:var(--gold)"> ✅ Aufgabe
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label>Kontakt <span class="required">*</span></label>
+          <select id="akt-kontakt"></select>
+        </div>
+        <div class="form-group">
+          <label>Datum <span class="required">*</span></label>
+          <input type="datetime-local" id="akt-datum">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Betreff <span class="required">*</span></label>
+          <input type="text" id="akt-betreff" placeholder="Kurze Beschreibung...">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Inhalt</label>
+          <textarea id="akt-inhalt" placeholder="Detaillierter Inhalt..."></textarea>
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label>Ergebnis</label>
+          <textarea id="akt-ergebnis" style="min-height:60px" placeholder="Ergebnis / Outcome..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Nächste Aktion</label>
+          <textarea id="akt-naechste" style="min-height:60px" placeholder="Follow-up..."></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Zuständiger</label>
+          <select id="akt-zustaendiger"></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-neue-aktivitaet')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveAktivitaet()">💾 Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: CRM 360°-Detail ===== -->
+<div class="modal-overlay" id="modal-crm-detail">
+  <div class="modal" style="max-width:820px">
+    <div class="modal-header">
+      <div class="modal-title" id="crm-detail-titel">👤 Kontaktdetails</div>
+      <button class="modal-close" onclick="closeModal('modal-crm-detail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;padding:16px;background:var(--bg-deep);border-radius:var(--radius-sm)">
+        <div id="crm-detail-avatar" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--wine-light));color:#fff;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0"></div>
+        <div style="flex:1">
+          <div style="font-size:20px;font-weight:700" id="crm-detail-name"></div>
+          <div style="font-size:13px;color:var(--text-dim)" id="crm-detail-firma-pos"></div>
+          <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap" id="crm-detail-badges"></div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="openAktivitaetForKontakt()">+ Aktivität</button>
+      </div>
+      <!-- Info Grid -->
+      <div class="crm-detail-grid" id="crm-detail-grid">
+        <div class="crm-detail-box">
+          <div class="box-title">Kontaktdaten</div>
+          <div id="crm-detail-kontaktdaten"></div>
+        </div>
+        <div class="crm-detail-box">
+          <div class="box-title">Finanzen</div>
+          <div id="crm-detail-finanzen"></div>
+        </div>
+        <div class="crm-detail-box">
+          <div class="box-title">CRM</div>
+          <div id="crm-detail-crm"></div>
+        </div>
+      </div>
+      <!-- Aktivitäten-Timeline -->
+      <div style="margin-bottom:20px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px;color:var(--gold)">📋 Letzte Aktivitäten</div>
+        <div id="crm-detail-aktivitaeten" class="crm-timeline"></div>
+      </div>
+      <!-- Deals -->
+      <div style="margin-bottom:20px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px;color:var(--gold)">💼 Deals</div>
+        <div id="crm-detail-deals"></div>
+      </div>
+      <!-- Rechnungen -->
+      <div>
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px;color:var(--gold)">💶 Rechnungen</div>
+        <div id="crm-detail-rechnungen"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ============================================================
 // ENZMANN WINERY TOOL – JavaScript Core
@@ -1939,6 +2369,14 @@ const DB = {
   set betrieb(v)    { this.save('betrieb', v); },
   get activity()    { return this.load('activity', []); },
   set activity(v)   { this.save('activity', v); },
+  get crm_deals()        { return this.load('crm_deals'); },
+  set crm_deals(v)       { this.save('crm_deals', v); },
+  get crm_kontakte()     { return this.load('crm_kontakte'); },
+  set crm_kontakte(v)    { this.save('crm_kontakte', v); },
+  get crm_aktivitaeten() { return this.load('crm_aktivitaeten'); },
+  set crm_aktivitaeten(v){ this.save('crm_aktivitaeten', v); },
+  get wix_config()       { return this.load('wix_config', {}); },
+  set wix_config(v)      { this.save('wix_config', v); },
 };
 
 // ── CURRENT USER ────────────────────────────────────────────
@@ -1967,6 +2405,7 @@ function renderPage(name) {
   if(name==='analysen')  renderAnalysen();
   if(name==='marketing') { renderKampagnen(); renderEvents(); renderPosts(); renderBlog(); }
   if(name==='vertrieb')  { renderKunden(); renderAngebote(); renderRechnungen(); renderPreisliste(); }
+  if(name==='crm')       renderCRM();
   if(name==='buchhaltung'){ renderBuchungen(); renderAuswertung(); renderOffenePosten(); }
   if(name==='aufgaben')  renderAufgaben();
   if(name==='dokumente') renderDokumente();
@@ -2008,6 +2447,28 @@ function populateModalSelects(id) {
   fill('ang-kunde',   kundenOpts);
   fill('auf-user',    userOpts);
   if(id==='modal-neue-aufgabe') { const el=document.getElementById('auf-user'); if(el) el.value=currentUser.id; }
+  // CRM dropdowns
+  if(['modal-neuer-deal','modal-neuer-crm-kontakt','modal-neue-aktivitaet'].includes(id)) {
+    const crmKontakte = DB.crm_kontakte;
+    const kunden = DB.kunden;
+    const kombOpts = [
+      ...kunden.map(k=>`<option value="k_${k.id}">${k.name}</option>`),
+      ...crmKontakte.map(k=>`<option value="c_${k.id}">${(k.vorname+' '+k.nachname).trim()}${k.firma?' ('+k.firma+')':''}</option>`)
+    ].join('');
+    fill('deal-kunde', kombOpts, '<option value="">— Bitte wählen —</option>');
+    fill('akt-kontakt', kombOpts, '<option value="">— Bitte wählen —</option>');
+    fill('deal-zustaendiger', userOpts, '<option value="">— Bitte wählen —</option>');
+    fill('crm-k-zustaendiger', userOpts, '<option value="">— Bitte wählen —</option>');
+    fill('akt-zustaendiger', userOpts, '<option value="">— Bitte wählen —</option>');
+    // set current user as default
+    ['deal-zustaendiger','crm-k-zustaendiger','akt-zustaendiger'].forEach(sel=>{
+      const el=document.querySelector(`#${id} #${sel}`); if(el&&currentUser) el.value=currentUser.id;
+    });
+    // auto-fill datetime for activity
+    if(id==='modal-neue-aktivitaet') {
+      const dtEl=document.getElementById('akt-datum'); if(dtEl&&!dtEl.value) dtEl.value=new Date().toISOString().slice(0,16);
+    }
+  }
   // auto date
   const today = new Date().toISOString().split('T')[0];
   ['beh-datum','ern-datum','kp-datum','bew-datum','gaer-beginn','ap-datum','ana-datum','ev-datum','ang-datum','buch-datum'].forEach(f=>{
@@ -4389,6 +4850,569 @@ function downloadCsvTemplate() {
   a.download='Vorlage_'+schema.label+'.csv';
   a.click();
 }
+
+// ============================================================
+// CRM MODULE
+// ============================================================
+
+const CRM_STAGES = ['Neu','Kontaktiert','Qualifiziert','Angebot gesendet','Verhandlung','Gewonnen','Verloren'];
+const AKT_ICONS = { 'Anruf':'📞', 'E-Mail':'📧', 'Meeting':'🤝', 'Notiz':'📝', 'Aufgabe':'✅' };
+
+// ── MAIN RENDER ──────────────────────────────────────────────
+function renderCRM() {
+  renderCrmPipeline();
+  renderCrmKontakte();
+  renderCrmAktivitaeten();
+  renderWixTab();
+  populateCrmDropdowns();
+}
+
+// ── POPULATE DROPDOWNS ──────────────────────────────────────
+function populateCrmDropdowns() {
+  const users = DB.benutzer;
+  const kunden = DB.kunden;
+  const crmK = DB.crm_kontakte;
+  const userOpts = users.map(u=>`<option value="${u.id}">${u.vorname} ${u.nachname}</option>`).join('');
+  const kontaktOpts = [
+    ...kunden.map(k=>`<option value="k_${k.id}">${k.name}</option>`),
+    ...crmK.map(k=>`<option value="c_${k.id}">${k.vorname} ${k.nachname}${k.firma?' ('+k.firma+')':''}</option>`)
+  ].join('');
+  ['deal-zustaendiger','crm-k-zustaendiger','akt-zustaendiger'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='<option value="">— Bitte wählen —</option>'+userOpts;
+  });
+  ['deal-kunde','akt-kontakt'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='<option value="">— Bitte wählen —</option>'+kontaktOpts;
+  });
+  // set current user as default
+  const cu = currentUser;
+  ['deal-zustaendiger','crm-k-zustaendiger','akt-zustaendiger'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el && cu) el.value=cu.id;
+  });
+}
+
+// ── PIPELINE ─────────────────────────────────────────────────
+function renderCrmPipeline() {
+  const deals = DB.crm_deals;
+  // KPIs
+  const total = deals.length;
+  const totalWert = deals.filter(d=>d.stage!=='Verloren').reduce((s,d)=>s+parseFloat(d.wert||0),0);
+  const now = new Date(); const m = now.getMonth(); const y = now.getFullYear();
+  const gewonnenM = deals.filter(d=>{
+    if(d.stage!=='Gewonnen') return false;
+    const dt = new Date(d.erstellt||0);
+    return dt.getMonth()===m && dt.getFullYear()===y;
+  }).reduce((s,d)=>s+parseFloat(d.wert||0),0);
+  const gewonnenTotal = deals.filter(d=>d.stage==='Gewonnen').length;
+  const abgeschlossen = deals.filter(d=>d.stage==='Gewonnen'||d.stage==='Verloren').length;
+  const convRate = abgeschlossen>0 ? Math.round(gewonnenTotal/abgeschlossen*100) : 0;
+  document.getElementById('crm-kpi-deals').textContent = total;
+  document.getElementById('crm-kpi-wert').textContent = fmtEur(totalWert);
+  document.getElementById('crm-kpi-gewonnen').textContent = fmtEur(gewonnenM);
+  document.getElementById('crm-kpi-conv').textContent = convRate+' %';
+  // Board
+  const board = document.getElementById('crm-kanban-board');
+  board.innerHTML = CRM_STAGES.map(stage => {
+    const stageDeals = deals.filter(d=>d.stage===stage);
+    const cards = stageDeals.length ? stageDeals.map(deal => {
+      const otherStages = CRM_STAGES.filter(s=>s!==stage);
+      const stageBtns = otherStages.map(s=>`<button class="deal-stage-btn" onclick="moveDeal('${deal.id}','${s}')" title="Zu: ${s}">${s}</button>`).join('');
+      return `<div class="deal-card">
+        <div class="deal-title">${esc(deal.titel)}</div>
+        <div class="deal-meta">
+          <span>${esc(deal.kundeName||'—')}</span>
+          <span class="deal-wert">${fmtEur(deal.wert||0)}</span>
+        </div>
+        <div class="deal-meta" style="margin-top:4px">
+          <span>${deal.faellig||''}</span>
+          <span>${deal.zustaendigName||''}</span>
+        </div>
+        <div class="deal-stage-btns">${stageBtns}</div>
+      </div>`;
+    }).join('') : '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:12px 0">Keine Deals</div>';
+    return `<div class="pipeline-col">
+      <div class="pipeline-col-header">
+        <span>${stage}</span>
+        <span class="count">${stageDeals.length}</span>
+      </div>
+      ${cards}
+    </div>`;
+  }).join('');
+}
+
+function moveDeal(id, newStage) {
+  const arr = DB.crm_deals;
+  const idx = arr.findIndex(d=>d.id===id);
+  if(idx<0) return;
+  arr[idx].stage = newStage;
+  DB.crm_deals = arr;
+  renderCrmPipeline();
+}
+
+function saveDeal() {
+  const titel = document.getElementById('deal-titel')?.value.trim();
+  if(!titel) return alert('Bitte einen Titel eingeben.');
+  const kundeVal = document.getElementById('deal-kunde')?.value||'';
+  const kunden = DB.kunden; const crmK = DB.crm_kontakte;
+  let kundeName = '';
+  if(kundeVal.startsWith('k_')) {
+    const k = kunden.find(x=>x.id===kundeVal.slice(2));
+    kundeName = k?.name||kundeVal;
+  } else if(kundeVal.startsWith('c_')) {
+    const k = crmK.find(x=>x.id===kundeVal.slice(2));
+    kundeName = k ? (k.vorname+' '+k.nachname) : kundeVal;
+  }
+  const zId = document.getElementById('deal-zustaendiger')?.value||'';
+  const user = DB.benutzer.find(u=>u.id===zId);
+  const deal = {
+    id: Date.now().toString(),
+    titel,
+    kundeRef: kundeVal,
+    kundeName,
+    wert: parseFloat(document.getElementById('deal-wert')?.value||0),
+    stage: document.getElementById('deal-stage')?.value||'Neu',
+    faellig: document.getElementById('deal-faellig')?.value||'',
+    zustaendigId: zId,
+    zustaendigName: user ? user.vorname+' '+user.nachname : '',
+    notiz: document.getElementById('deal-notiz')?.value||'',
+    erstellt: new Date().toISOString(),
+    erstelltVon: currentUser?.vorname||''
+  };
+  const arr = DB.crm_deals; arr.push(deal); DB.crm_deals = arr;
+  closeModal('modal-neuer-deal');
+  clearDealForm();
+  renderCrmPipeline();
+  logActivity('Neuer Deal', deal.titel+' ('+deal.stage+')', 'gold');
+}
+
+function clearDealForm() {
+  ['deal-titel','deal-wert','deal-faellig','deal-notiz'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+}
+
+// ── KONTAKTE ─────────────────────────────────────────────────
+function renderCrmKontakte() {
+  const search = (document.getElementById('crm-kontakte-search')?.value||'').toLowerCase();
+  const typFilter = document.getElementById('crm-kontakte-typ')?.value||'';
+  const tagFilter = (document.getElementById('crm-kontakte-tag')?.value||'').toLowerCase();
+  // Merge DB.kunden + DB.crm_kontakte
+  const fromKunden = DB.kunden.map(k=>({
+    _src:'kunden', id:k.id, name:k.name, vorname:'', nachname:k.name,
+    firma:k.firma||'', position:'', email:k.email||'', tel:k.tel||'', mobil:'',
+    typ:k.typ||'Privat', tags:k.tags||[], letzterKontakt:'', zustaendigId:'',
+    wixId:k.wixId||''
+  }));
+  const fromCrm = DB.crm_kontakte.map(k=>({
+    _src:'crm', id:k.id, name:(k.vorname+' '+k.nachname).trim(), vorname:k.vorname, nachname:k.nachname,
+    firma:k.firma||'', position:k.position||'', email:k.email||'', tel:k.tel||'', mobil:k.mobil||'',
+    typ:k.typ||'Privat', tags:Array.isArray(k.tags)?k.tags:(k.tags?k.tags.split(',').map(t=>t.trim()):[]),
+    letzterKontakt:k.letzterKontakt||'', zustaendigId:k.zustaendigId||'',
+    wixId:k.wixId||''
+  }));
+  // merge: crm overrides kunden by email
+  const crmEmails = new Set(fromCrm.map(k=>k.email).filter(Boolean));
+  const merged = [
+    ...fromKunden.filter(k=>!k.email||!crmEmails.has(k.email)),
+    ...fromCrm
+  ];
+  let list = merged.filter(k=>{
+    if(typFilter && k.typ!==typFilter) return false;
+    if(tagFilter && !k.tags.some(t=>t.toLowerCase().includes(tagFilter))) return false;
+    if(search && !k.name.toLowerCase().includes(search) && !k.email.toLowerCase().includes(search) && !(k.firma||'').toLowerCase().includes(search)) return false;
+    return true;
+  });
+  const body = document.getElementById('crm-kontakte-body');
+  if(!list.length) {
+    body.innerHTML='<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text-muted)">Keine Kontakte gefunden</td></tr>';
+    return;
+  }
+  const users = DB.benutzer;
+  body.innerHTML = list.map(k=>{
+    const zu = users.find(u=>u.id===k.zustaendigId);
+    const tagsHtml = k.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+    return `<tr style="cursor:pointer" onclick="openCrmDetail('${k._src}','${k.id}')">
+      <td><strong>${esc(k.name)}</strong></td>
+      <td>${esc(k.firma)}</td>
+      <td>${esc(k.position)}</td>
+      <td>${esc(k.email)}</td>
+      <td>${esc(k.tel)}</td>
+      <td><span class="badge-status badge-neutral">${esc(k.typ)}</span></td>
+      <td>${tagsHtml}</td>
+      <td>${k.letzterKontakt||'—'}</td>
+      <td>${zu?zu.vorname+' '+zu.nachname:'—'}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openCrmDetail('${k._src}','${k.id}')">👁</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function saveCrmKontakt() {
+  const vn = document.getElementById('crm-k-vorname')?.value.trim();
+  const nn = document.getElementById('crm-k-nachname')?.value.trim();
+  if(!vn||!nn) return alert('Vor- und Nachname sind Pflichtfelder.');
+  const email = document.getElementById('crm-k-email')?.value.trim()||'';
+  const tagsRaw = document.getElementById('crm-k-tags')?.value||'';
+  const tags = tagsRaw.split(',').map(t=>t.trim()).filter(Boolean);
+  const zId = document.getElementById('crm-k-zustaendiger')?.value||'';
+  const user = DB.benutzer.find(u=>u.id===zId);
+  const k = {
+    id: Date.now().toString(),
+    vorname:vn, nachname:nn,
+    firma: document.getElementById('crm-k-firma')?.value||'',
+    position: document.getElementById('crm-k-position')?.value||'',
+    email,
+    tel: document.getElementById('crm-k-tel')?.value||'',
+    mobil: document.getElementById('crm-k-mobil')?.value||'',
+    adresse: document.getElementById('crm-k-adresse')?.value||'',
+    typ: document.getElementById('crm-k-typ')?.value||'Privat',
+    tags, zustaendigId: zId,
+    notiz: document.getElementById('crm-k-notiz')?.value||'',
+    wixId: document.getElementById('crm-k-wixid')?.value||'',
+    letzterKontakt: new Date().toISOString().split('T')[0],
+    erstellt: new Date().toISOString()
+  };
+  const arr = DB.crm_kontakte; arr.push(k); DB.crm_kontakte = arr;
+  // Sync to DB.kunden if email not already there
+  if(email) {
+    const kunden = DB.kunden;
+    const idx = kunden.findIndex(x=>x.email===email);
+    if(idx<0) {
+      kunden.push({ id:'crm_'+k.id, name:vn+' '+nn, typ:k.typ, email, tel:k.tel, firma:k.firma, ort:'', wixId:k.wixId, quelle:'CRM', umsatz:0 });
+      DB.kunden = kunden;
+    } else {
+      kunden[idx].typ = k.typ; kunden[idx].tel = k.tel||kunden[idx].tel;
+      DB.kunden = kunden;
+    }
+  }
+  closeModal('modal-neuer-crm-kontakt');
+  clearCrmKontaktForm();
+  renderCrmKontakte();
+  logActivity('Neuer CRM-Kontakt', vn+' '+nn, 'gold');
+}
+
+function clearCrmKontaktForm() {
+  ['crm-k-vorname','crm-k-nachname','crm-k-firma','crm-k-position','crm-k-email','crm-k-tel','crm-k-mobil','crm-k-adresse','crm-k-tags','crm-k-notiz','crm-k-wixid'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+}
+
+// ── AKTIVITÄTEN ─────────────────────────────────────────────
+function renderCrmAktivitaeten() {
+  const filter = document.getElementById('crm-akt-filter')?.value||'';
+  let list = [...DB.crm_aktivitaeten];
+  if(filter) list = list.filter(a=>a.typ===filter);
+  list.sort((a,b)=>new Date(b.datum)-new Date(a.datum));
+  const container = document.getElementById('crm-aktivitaeten-list');
+  if(!list.length) {
+    container.innerHTML='<div class="empty-state"><div class="icon">📋</div><p>Keine Aktivitäten vorhanden</p></div>';
+    return;
+  }
+  container.innerHTML = list.map(a=>{
+    const icon = AKT_ICONS[a.typ]||'📌';
+    const dt = a.datum ? new Date(a.datum) : null;
+    const dtStr = dt ? dt.toLocaleDateString('de-DE')+' '+dt.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const inhalt = (a.betreff||'').slice(0,60)+(a.betreff&&a.betreff.length>60?'…':'');
+    return `<div class="aktivitaet-item">
+      <div class="aktivitaet-icon">${icon}</div>
+      <div class="aktivitaet-body">
+        <div class="betreff">${esc(a.betreff)}</div>
+        <div class="meta">${dtStr} • ${esc(a.kontaktName||'—')} • ${esc(a.zustaendigName||'—')}</div>
+        ${a.inhalt?`<div style="font-size:12px;color:var(--text-dim);margin-top:3px">${esc(a.inhalt.slice(0,120))}</div>`:''}
+      </div>
+      <span class="badge-status badge-neutral" style="flex-shrink:0">${esc(a.typ)}</span>
+    </div>`;
+  }).join('');
+}
+
+function saveAktivitaet(prefillKontaktId) {
+  const typ = document.querySelector('input[name="akt-typ"]:checked')?.value||'Notiz';
+  const kontaktVal = document.getElementById('akt-kontakt')?.value||'';
+  const datum = document.getElementById('akt-datum')?.value;
+  const betreff = document.getElementById('akt-betreff')?.value.trim();
+  if(!betreff) return alert('Betreff ist ein Pflichtfeld.');
+  if(!datum) return alert('Datum ist ein Pflichtfeld.');
+  const kunden = DB.kunden; const crmK = DB.crm_kontakte;
+  let kontaktName = '';
+  if(kontaktVal.startsWith('k_')) {
+    const k = kunden.find(x=>x.id===kontaktVal.slice(2)); kontaktName=k?.name||kontaktVal;
+  } else if(kontaktVal.startsWith('c_')) {
+    const k = crmK.find(x=>x.id===kontaktVal.slice(2)); kontaktName=k?(k.vorname+' '+k.nachname):kontaktVal;
+  }
+  const zId = document.getElementById('akt-zustaendiger')?.value||'';
+  const user = DB.benutzer.find(u=>u.id===zId);
+  const akt = {
+    id: Date.now().toString(),
+    typ, kontaktRef:kontaktVal, kontaktName, datum,
+    betreff,
+    inhalt: document.getElementById('akt-inhalt')?.value||'',
+    ergebnis: document.getElementById('akt-ergebnis')?.value||'',
+    naechste: document.getElementById('akt-naechste')?.value||'',
+    zustaendigId: zId,
+    zustaendigName: user?user.vorname+' '+user.nachname:'',
+    erstellt: new Date().toISOString()
+  };
+  const arr = DB.crm_aktivitaeten; arr.push(akt); DB.crm_aktivitaeten = arr;
+  // Update letzterKontakt in crm_kontakte
+  if(kontaktVal.startsWith('c_')) {
+    const cArr = DB.crm_kontakte;
+    const idx = cArr.findIndex(x=>x.id===kontaktVal.slice(2));
+    if(idx>=0){ cArr[idx].letzterKontakt=datum.split('T')[0]; DB.crm_kontakte=cArr; }
+  }
+  closeModal('modal-neue-aktivitaet');
+  clearAktivitaetForm();
+  renderCrmAktivitaeten();
+  logActivity('CRM Aktivität', typ+': '+betreff, 'gold');
+}
+
+function clearAktivitaetForm() {
+  ['akt-datum','akt-betreff','akt-inhalt','akt-ergebnis','akt-naechste'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  const firstRadio=document.querySelector('input[name="akt-typ"]');
+  if(firstRadio) firstRadio.checked=true;
+}
+
+// ── 360° DETAIL ──────────────────────────────────────────────
+let _crmDetailRef = null;
+function openCrmDetail(src, id) {
+  _crmDetailRef = {src,id};
+  let k = null;
+  if(src==='kunden') {
+    const raw = DB.kunden.find(x=>x.id===id);
+    if(!raw) return;
+    k = { name:raw.name, vorname:'', firma:raw.firma||'', position:'', typ:raw.typ||'', tags:[],
+      email:raw.email||'', tel:raw.tel||'', adresse:raw.ort||'', wixId:raw.wixId||'',
+      zustaendigId:'', id:raw.id, _rawEmail:raw.email };
+  } else {
+    const raw = DB.crm_kontakte.find(x=>x.id===id);
+    if(!raw) return;
+    k = { name:(raw.vorname+' '+raw.nachname).trim(), vorname:raw.vorname, firma:raw.firma||'', position:raw.position||'',
+      typ:raw.typ||'', tags:Array.isArray(raw.tags)?raw.tags:(raw.tags?raw.tags.split(',').map(t=>t.trim()):[]),
+      email:raw.email||'', tel:raw.tel||'', adresse:raw.adresse||'', wixId:raw.wixId||'',
+      zustaendigId:raw.zustaendigId||'', id:raw.id, _rawEmail:raw.email };
+  }
+  const initials = k.name.split(' ').map(x=>x[0]||'').join('').slice(0,2).toUpperCase();
+  document.getElementById('crm-detail-avatar').textContent=initials;
+  document.getElementById('crm-detail-name').textContent=k.name;
+  document.getElementById('crm-detail-firma-pos').textContent=[k.firma,k.position].filter(Boolean).join(' · ');
+  document.getElementById('crm-detail-titel').textContent='👤 '+k.name;
+  const badgesEl = document.getElementById('crm-detail-badges');
+  const typBadge = k.typ?`<span class="badge-status badge-neutral">${esc(k.typ)}</span>`:'';
+  const tagBadges = k.tags.map(t=>`<span class="tag gold">${esc(t)}</span>`).join('');
+  badgesEl.innerHTML=typBadge+tagBadges;
+  // Kontaktdaten
+  const zu = DB.benutzer.find(u=>u.id===k.zustaendigId);
+  document.getElementById('crm-detail-kontaktdaten').innerHTML=`
+    <div class="box-row"><span>E-Mail</span><span>${esc(k.email)||'—'}</span></div>
+    <div class="box-row"><span>Telefon</span><span>${esc(k.tel)||'—'}</span></div>
+    <div class="box-row"><span>Adresse</span><span>${esc(k.adresse)||'—'}</span></div>
+    <div class="box-row"><span>Wix-ID</span><span style="font-size:11px">${esc(k.wixId)||'—'}</span></div>
+    <div class="box-row"><span>Zuständig</span><span>${zu?zu.vorname+' '+zu.nachname:'—'}</span></div>`;
+  // Finanzen
+  const rechnungen = DB.rechnungen.filter(r=>{
+    const rName=(r.kunde||'').toLowerCase();
+    return rName.includes(k.name.toLowerCase())||(k.email&&rName.includes(k.email.toLowerCase()));
+  });
+  const totalUmsatz = rechnungen.reduce((s,r)=>s+parseFloat(r.brutto||0),0);
+  const offenSum = rechnungen.filter(r=>r.status==='Offen'||r.status==='Überfällig').reduce((s,r)=>s+parseFloat(r.brutto||0),0);
+  const letzteR = rechnungen.sort((a,b)=>new Date(b.datum)-new Date(a.datum))[0];
+  document.getElementById('crm-detail-finanzen').innerHTML=`
+    <div class="box-row"><span>Umsatz gesamt</span><span style="font-weight:700;color:var(--gold)">${fmtEur(totalUmsatz)}</span></div>
+    <div class="box-row"><span>Rechnungen</span><span>${rechnungen.length}</span></div>
+    <div class="box-row"><span>Offen</span><span style="color:var(--red-light)">${fmtEur(offenSum)}</span></div>
+    <div class="box-row"><span>Letzte Rechnung</span><span>${letzteR?letzteR.datum:'—'}</span></div>`;
+  // CRM
+  const aktivitaeten = DB.crm_aktivitaeten.filter(a=>a.kontaktRef===src[0]+'_'+id||a.kontaktName===k.name);
+  const deals = DB.crm_deals.filter(d=>d.kundeName===k.name||(d.kundeRef===src[0]+'_'+id));
+  const letzteA = aktivitaeten.sort((a,b)=>new Date(b.datum)-new Date(a.datum))[0];
+  const aktuellerDeal = deals.filter(d=>d.stage!=='Gewonnen'&&d.stage!=='Verloren')[0];
+  document.getElementById('crm-detail-crm').innerHTML=`
+    <div class="box-row"><span>Letzte Aktivität</span><span>${letzteA?letzteA.datum?.split('T')[0]:'—'}</span></div>
+    <div class="box-row"><span>Deal-Stage</span><span>${aktuellerDeal?esc(aktuellerDeal.stage):'—'}</span></div>
+    <div class="box-row"><span>Anzahl Deals</span><span>${deals.length}</span></div>
+    <div class="box-row"><span>Aktivitäten</span><span>${aktivitaeten.length}</span></div>`;
+  // Timeline
+  const timelineEl = document.getElementById('crm-detail-aktivitaeten');
+  const recentAkt = aktivitaeten.slice(0,10);
+  timelineEl.innerHTML = recentAkt.length ? recentAkt.map(a=>{
+    const icon=AKT_ICONS[a.typ]||'📌';
+    return `<div class="crm-timeline-item">
+      <span style="font-size:16px">${icon}</span>
+      <div style="flex:1">
+        <div style="font-weight:600">${esc(a.betreff)}</div>
+        <div style="font-size:11px;color:var(--text-dim)">${a.datum?.replace('T',' ').slice(0,16)||''} · ${esc(a.zustaendigName||'')}</div>
+      </div>
+      <span class="badge-status badge-neutral">${esc(a.typ)}</span>
+    </div>`;
+  }).join('') : '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Aktivitäten vorhanden</div>';
+  // Deals
+  const dealsEl = document.getElementById('crm-detail-deals');
+  dealsEl.innerHTML = deals.length ? deals.map(d=>`
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span>${esc(d.titel)}</span>
+      <span class="badge-status badge-neutral">${esc(d.stage)}</span>
+      <span style="font-weight:700;color:var(--gold)">${fmtEur(d.wert||0)}</span>
+    </div>`).join('') : '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Deals</div>';
+  // Rechnungen
+  const rechEl = document.getElementById('crm-detail-rechnungen');
+  rechEl.innerHTML = rechnungen.length ? rechnungen.slice(0,8).map(r=>`
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span>${esc(r.nr||r.id)}</span>
+      <span>${r.datum||''}</span>
+      <span class="badge-status ${r.status==='Bezahlt'?'badge-ok':r.status==='Überfällig'?'badge-error':'badge-warn'}">${esc(r.status)}</span>
+      <span style="font-weight:700">${fmtEur(r.brutto||0)}</span>
+    </div>`).join('') : '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Rechnungen</div>';
+  openModal('modal-crm-detail');
+}
+
+function openAktivitaetForKontakt() {
+  closeModal('modal-crm-detail');
+  populateCrmDropdowns();
+  if(_crmDetailRef) {
+    const selId = _crmDetailRef.src[0]+'_'+_crmDetailRef.id;
+    setTimeout(()=>{
+      const el=document.getElementById('akt-kontakt');
+      if(el) el.value=selId;
+    },100);
+  }
+  // set default date to now
+  const el=document.getElementById('akt-datum');
+  if(el) el.value=new Date().toISOString().slice(0,16);
+  openModal('modal-neue-aktivitaet');
+}
+
+// ── WIX TAB ──────────────────────────────────────────────────
+function renderWixTab() {
+  const cfg = DB.wix_config;
+  const apiEl=document.getElementById('wix-api-key');
+  const siteEl=document.getElementById('wix-site-id');
+  if(apiEl) apiEl.value=cfg.apiKey||'';
+  if(siteEl) siteEl.value=cfg.siteId||'';
+  const lastSync=document.getElementById('wix-last-sync');
+  if(lastSync) lastSync.textContent=cfg.lastSync?new Date(cfg.lastSync).toLocaleString('de-DE'):'Noch nie';
+  const badge=document.getElementById('wix-status-badge');
+  if(badge) {
+    if(cfg.connected) {
+      badge.className='wix-status connected'; badge.textContent='● Verbunden';
+    } else {
+      badge.className='wix-status disconnected'; badge.textContent='● Nicht verbunden';
+    }
+  }
+}
+
+function saveWixConfig() {
+  const apiKey=document.getElementById('wix-api-key')?.value||'';
+  const siteId=document.getElementById('wix-site-id')?.value||'';
+  const existing=DB.wix_config;
+  DB.wix_config={...existing, apiKey, siteId};
+  alert('Wix-Konfiguration gespeichert.');
+  renderWixTab();
+}
+
+async function wixTestVerbindung() {
+  const cfg=DB.wix_config;
+  if(!cfg.apiKey||!cfg.siteId) return alert('Bitte API Key und Site ID eingeben und speichern.');
+  const badge=document.getElementById('wix-status-badge');
+  if(badge){ badge.className='wix-status'; badge.textContent='⏳ Teste Verbindung...'; }
+  try {
+    const r=await fetch('https://www.wixapis.com/site-properties/v4/properties',{
+      headers:{'Authorization':cfg.apiKey,'wix-site-id':cfg.siteId}
+    });
+    const existing=DB.wix_config;
+    if(r.ok){
+      DB.wix_config={...existing,connected:true};
+      if(badge){badge.className='wix-status connected';badge.textContent='● Verbunden';}
+      alert('✅ Wix-Verbindung erfolgreich!');
+    } else {
+      DB.wix_config={...existing,connected:false};
+      if(badge){badge.className='wix-status disconnected';badge.textContent='● Nicht verbunden';}
+      alert('❌ Verbindung fehlgeschlagen. HTTP '+r.status+'. Bitte API Key und Site ID prüfen.');
+    }
+  } catch(e){
+    const existing=DB.wix_config; DB.wix_config={...existing,connected:false};
+    if(badge){badge.className='wix-status disconnected';badge.textContent='● Nicht verbunden';}
+    alert('❌ Netzwerkfehler: '+e.message);
+  }
+}
+
+async function wixImportKontakte() {
+  const cfg=DB.wix_config;
+  if(!cfg.apiKey) return alert('Kein Wix API Key konfiguriert. Bitte zuerst speichern.');
+  try {
+    const r=await fetch('https://www.wixapis.com/contacts/v4/contacts?limit=1000',{
+      headers:{'Authorization':cfg.apiKey,'wix-site-id':cfg.siteId}
+    });
+    if(!r.ok) { alert('Fehler beim Abrufen der Kontakte: HTTP '+r.status); return; }
+    const data=await r.json();
+    const contacts=data.contacts||[];
+    let imported=0;
+    const existing=DB.kunden;
+    contacts.forEach(c=>{
+      const email=c.primaryInfo?.email||'';
+      if(email&&existing.find(k=>k.email===email)) return;
+      const neu={
+        id:'wix_'+c.id,
+        name:[c.name?.first,c.name?.last].filter(Boolean).join(' ')||'Wix Kontakt',
+        typ:'Privat',email,tel:c.primaryInfo?.phone||'',
+        ort:c.addresses?.[0]?.city||'',
+        wixId:c.id,quelle:'Wix',umsatz:0
+      };
+      existing.push(neu); imported++;
+    });
+    DB.kunden=existing;
+    DB.wix_config={...cfg,lastSync:new Date().toISOString(),connected:true};
+    renderWixTab();
+    alert('✅ '+imported+' Kontakte importiert.');
+    renderCrmKontakte();
+  } catch(e){ alert('Fehler beim Import: '+e.message); }
+}
+
+async function wixImportBestellungen() {
+  const cfg=DB.wix_config;
+  if(!cfg.apiKey) return alert('Kein Wix API Key konfiguriert. Bitte zuerst speichern.');
+  try {
+    const r=await fetch('https://www.wixapis.com/stores/v2/orders/query',{
+      method:'POST',
+      headers:{'Authorization':cfg.apiKey,'wix-site-id':cfg.siteId,'Content-Type':'application/json'},
+      body:JSON.stringify({query:{paging:{limit:100}}})
+    });
+    if(!r.ok){ alert('Fehler beim Abrufen der Bestellungen: HTTP '+r.status); return; }
+    const data=await r.json();
+    const orders=data.orders||[];
+    let imported=0;
+    const existing=DB.rechnungen;
+    orders.forEach(o=>{
+      if(existing.find(rx=>rx.wixOrderId===o.id)) return;
+      existing.push({
+        id:Date.now().toString()+imported,
+        nr:'WIX-'+o.number,
+        datum:o.dateCreated?.split('T')[0]||'',
+        kunde:o.billingInfo?.address?.fullName||'Wix Kunde',
+        brutto:parseFloat(o.totals?.total||0).toFixed(2),
+        status:o.paymentStatus==='PAID'?'Bezahlt':'Offen',
+        wixOrderId:o.id,quelle:'Wix',
+        notiz:'Wix-Bestellung #'+o.number
+      });
+      imported++;
+    });
+    DB.rechnungen=existing;
+    DB.wix_config={...cfg,lastSync:new Date().toISOString()};
+    renderWixTab();
+    alert('✅ '+imported+' Bestellungen importiert.');
+    if(typeof renderRechnungen==='function') renderRechnungen();
+  } catch(e){ alert('Fehler: '+e.message); }
+}
+
+// ── HELPER ───────────────────────────────────────────────────
+function esc(str) {
+  if(!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 
 </script>
 </body>
