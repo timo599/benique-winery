@@ -6041,9 +6041,30 @@ function esc(str) {
   });
   localStorage.setItem('ew_kunden', JSON.stringify(kMerged));
 
-  // Rechnungen – nur neue hinzufügen
+  // Rechnungen – Store-Bestellungen + Direktverkauf-Receipts zusammenführen
+  const RECEIPTS_DIREKT = [
+    {id:'rcpt_a8405a16',nr:'R-2026-044',datum:'2026-05-19',kunde:'Direktverkauf',brutto:'189.65',netto:'159.37',mwst:'30.28',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rosé + 6er Weinpaket BENIQUE Rot',quelle:'Wix-Receipt',wixReceiptId:'a8405a16-ff55-4e07-9015-0c5a6ae06461'},
+    {id:'rcpt_b26095f7',nr:'R-2026-043',datum:'2026-05-17',kunde:'Direktverkauf',brutto:'280.00',netto:'235.29',mwst:'44.71',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rosé x4',quelle:'Wix-Receipt',wixReceiptId:'b26095f7-bd83-405a-a2ba-6cfd7fd8314e'},
+    {id:'rcpt_23dde907',nr:'R-2026-042',datum:'2026-05-14',kunde:'Direktverkauf',brutto:'189.72',netto:'159.43',mwst:'30.29',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rot + 6er Weinpaket BENIQUE Rosé',quelle:'Wix-Receipt',wixReceiptId:'23dde907-d59b-486a-b4e8-f58f4090901b'},
+    {id:'rcpt_e15ed9ac',nr:'R-2026-041',datum:'2026-05-12',kunde:'Direktverkauf',brutto:'71.99',netto:'60.50',mwst:'11.49',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rosé',quelle:'Wix-Receipt',wixReceiptId:'e15ed9ac-9a05-4511-92a1-14b66d78c777'},
+    {id:'rcpt_15ab3e7c',nr:'R-2026-040',datum:'2026-05-11',kunde:'Direktverkauf',brutto:'144.00',netto:'144.00',mwst:'0.00',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rosé x2',quelle:'Wix-Receipt',wixReceiptId:'15ab3e7c-11d8-4166-a2af-5c78ca82fabc'},
+    {id:'rcpt_fa473da9',nr:'R-2026-038',datum:'2026-04-14',kunde:'Direktverkauf',brutto:'268.80',netto:'268.80',mwst:'0.00',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rosé + BENIQUE Pinot Noir Rot',quelle:'Wix-Receipt',wixReceiptId:'fa473da9-132e-486e-b2ab-4a25e1effe56'},
+    {id:'rcpt_6c6ff2e1',nr:'R-2026-035',datum:'2026-03-26',kunde:'Direktverkauf',brutto:'216.00',netto:'216.00',mwst:'0.00',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rosé x3',quelle:'Wix-Receipt',wixReceiptId:'6c6ff2e1-1458-45cb-a880-e63f915ae63c'},
+    {id:'rcpt_eeae936d',nr:'R-2026-034',datum:'2026-03-25',kunde:'Direktverkauf',brutto:'72.00',netto:'72.00',mwst:'0.00',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rosé',quelle:'Wix-Receipt',wixReceiptId:'eeae936d-7d45-42d9-8303-3ec58366a806'},
+    {id:'rcpt_a56acee0',nr:'R-2026-033',datum:'2026-03-25',kunde:'Direktverkauf',brutto:'24.00',netto:'24.00',mwst:'0.00',status:'Bezahlt',betreff:'BENIQUE Rosé x2',quelle:'Wix-Receipt',wixReceiptId:'a56acee0-8eb5-49af-b34f-f3f1e1bc66d8'},
+    {id:'rcpt_5ee3099f',nr:'R-2026-032',datum:'2026-03-25',kunde:'Direktverkauf',brutto:'120.00',netto:'120.00',mwst:'0.00',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rot',quelle:'Wix-Receipt',wixReceiptId:'5ee3099f-a389-4c30-b246-69f5fe505c54'},
+    {id:'rcpt_70a54ad2',nr:'R-2026-031',datum:'2026-03-20',kunde:'Direktverkauf',brutto:'287.99',netto:'287.99',mwst:'0.00',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rosé x4',quelle:'Wix-Receipt',wixReceiptId:'70a54ad2-7d0e-415e-8769-37170f3080f4'},
+    {id:'rcpt_26cca808',nr:'R-2026-030',datum:'2026-03-09',kunde:'Direktverkauf',brutto:'130.00',netto:'130.00',mwst:'0.00',status:'Bezahlt',betreff:'BENIQUE Pinot Noir Rot + 6er Weinpaket BENIQUE Rosé',quelle:'Wix-Receipt',wixReceiptId:'26cca808-56c7-4bd8-8d43-632bca74b1db'},
+    {id:'rcpt_a74ae00e',nr:'R-2026-029',datum:'2026-03-09',kunde:'Direktverkauf',brutto:'94.00',netto:'94.00',mwst:'0.00',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rosé + BENIQUE Pinot Noir Rot',quelle:'Wix-Receipt',wixReceiptId:'a74ae00e-c34c-459b-ad1b-e4e3f9641e96'},
+    {id:'rcpt_624c3290',nr:'R-2026-027',datum:'2026-03-02',kunde:'Direktverkauf',brutto:'170.00',netto:'170.00',mwst:'0.00',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rot + 6er Weinpaket BENIQUE Rosé',quelle:'Wix-Receipt',wixReceiptId:'624c3290-75e6-4fbd-ab3b-69a582ddbb7b'},
+    {id:'rcpt_591bb1c8',nr:'R-2026-026',datum:'2026-02-23',kunde:'Direktverkauf',brutto:'264.00',netto:'264.00',mwst:'0.00',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rosé + 6er Weinpaket BENIQUE Rot',quelle:'Wix-Receipt',wixReceiptId:'591bb1c8-024b-4b90-9a17-963634697b94'},
+    {id:'rcpt_723e4b2c',nr:'R-2026-025',datum:'2026-02-23',kunde:'Direktverkauf',brutto:'210.07',netto:'210.07',mwst:'0.00',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rosé x3',quelle:'Wix-Receipt',wixReceiptId:'723e4b2c-0df2-4524-ae6f-81a603cff4c5'},
+    {id:'rcpt_74b55116',nr:'R-2026-024',datum:'2026-01-15',kunde:'Direktverkauf',brutto:'180.00',netto:'180.00',mwst:'0.00',status:'Bezahlt',betreff:'6er Weinpaket BENIQUE Rot',quelle:'Wix-Receipt',wixReceiptId:'74b55116-c81c-4a6d-b41f-8764c3db17f3'},
+    {id:'rcpt_3ad5715e',nr:'R-2026-023',datum:'2026-01-14',kunde:'Direktverkauf',brutto:'105.00',netto:'105.00',mwst:'0.00',status:'Bezahlt',betreff:'BENIQUE Pinot Noir Rot x5',quelle:'Wix-Receipt',wixReceiptId:'3ad5715e-b0ea-460f-815d-1550309d1935'},
+  ];
   const rEx = JSON.parse(localStorage.getItem('ew_rechnungen') || '[]');
-  localStorage.setItem('ew_rechnungen', JSON.stringify(mergeByKey(rEx, RECHNUNGEN, r => r.wixOrderId || r.id)));
+  const allR = mergeByKey(rEx, RECHNUNGEN, r => r.wixOrderId || r.id);
+  localStorage.setItem('ew_rechnungen', JSON.stringify(mergeByKey(allR, RECEIPTS_DIREKT, r => r.wixReceiptId || r.id)));
 
   // Produkte – immer überschreiben (Wix ist führend)
   localStorage.setItem('ew_produkte', JSON.stringify(PRODUKTE.length ? PRODUKTE : JSON.parse(localStorage.getItem('ew_produkte') || '[]')));
@@ -6061,7 +6082,7 @@ function esc(str) {
   localStorage.setItem('ew_wix_config', JSON.stringify(Object.assign({}, WIX_CFG, cfgEx.apiKey ? {apiKey: cfgEx.apiKey} : {})));
 
   localStorage.setItem('ew_wix_live_init', '2026-06-11');
-  console.log('[BENIQUE] Wix-Daten initialisiert: 58 Kunden · 30 Bestellungen · 4 Produkte · 12 Blog-Posts · 13 Kampagnen · Umsatz 1924.98 €');
+  console.log('[BENIQUE] Wix-Daten initialisiert: 58 Kunden · 30 Bestellungen + 18 Direktverkauf-Receipts · 4 Produkte · 12 Blog-Posts · 13 Kampagnen · Gesamtumsatz 4.942,20 €');
 })();
 
 </script>

@@ -177,12 +177,49 @@ except Exception as e:
     print(f"  Kampagnen: {e} – übersprungen")
     kampagnen = []
 
+# ── Receipts (Direktverkäufe / manuelle Zahlungen) ────────────────────────────
+print("→ Fetching Receipts (Direktverkäufe)...")
+receipts_direkt = []
+try:
+    rc_data = wix_post('/receipts/v1/receipts/query', {
+        'query': {'paging': {'limit': 100}, 'sort': [{'fieldName': 'createdDate', 'order': 'DESC'}]}
+    })
+    rc_raw = rc_data.get('receipts', [])
+    # Nur Receipts die NICHT als Store-Order schon existieren (keine Duplikate)
+    order_bruttos = {(o['datum'], o['brutto']) for o in all_orders}
+    for rc in rc_raw:
+        datum = rc.get('createdDate', '')[:10]
+        brutto = str(round(float(rc.get('totals', {}).get('total', 0)), 2))
+        if (datum, brutto) in order_bruttos:
+            continue  # Bereits als Bestellung erfasst
+        items = rc.get('lineItems', [])
+        receipts_direkt.append({
+            'id':           'rcpt_' + rc['id'][:8],
+            'nr':           'R-' + datum[:4] + '-' + rc['id'][:6],
+            'datum':        datum,
+            'kunde':        'Direktverkauf',
+            'brutto':       brutto,
+            'netto':        str(round(float(rc.get('totals', {}).get('subtotal', 0)) or float(rc.get('totals', {}).get('total', 0)), 2)),
+            'mwst':         str(round(float(rc.get('totals', {}).get('tax', 0)), 2)),
+            'status':       'Bezahlt',
+            'betreff':      ', '.join(i.get('name', '') for i in items)[:80],
+            'quelle':       'Wix-Receipt',
+            'wixReceiptId': rc['id'],
+        })
+    print(f"  → {len(rc_raw)} Receipts total, {len(receipts_direkt)} davon Direktverkäufe (nicht in Bestellungen)")
+except Exception as e:
+    print(f"  Receipts: {e} – übersprungen")
+
 # ── Statistiken ───────────────────────────────────────────────────────────────
-total_umsatz = sum(float(b['brutto']) for b in all_orders if b['status'] == 'Bezahlt')
+total_umsatz_orders  = sum(float(b['brutto']) for b in all_orders if b['status'] == 'Bezahlt')
+total_umsatz_direkt  = sum(float(r['brutto']) for r in receipts_direkt)
+total_umsatz         = round(total_umsatz_orders + total_umsatz_direkt, 2)
 now_iso = datetime.now(timezone.utc).isoformat()
 
-print(f"✅ {len(kunden)} Kunden · {len(all_orders)} Bestellungen · {len(produkte)} Produkte · {len(blogs)} Blog-Posts · {len(kampagnen)} Kampagnen")
-print(f"   Gesamtumsatz (Bezahlt): {total_umsatz:.2f} €")
+print(f"✅ {len(kunden)} Kunden · {len(all_orders)} Bestellungen · {len(receipts_direkt)} Direktverkäufe · {len(produkte)} Produkte · {len(blogs)} Blog-Posts · {len(kampagnen)} Kampagnen")
+print(f"   Umsatz Online-Shop:    {total_umsatz_orders:.2f} €")
+print(f"   Umsatz Direktverkauf:  {total_umsatz_direkt:.2f} €")
+print(f"   Gesamtumsatz:          {total_umsatz:.2f} €")
 
 # ── HTML Patchen ──────────────────────────────────────────────────────────────
 print("→ Patching index.html...")
@@ -195,17 +232,18 @@ def js(obj):
 new_block = f"""
 // ══════════════════════════════════════════════════════════════════════════════
 // BENIQUE Wix Live-Daten – direkt eingebettet (Wix Site: Benique)
-// Stand: {now_iso[:10]} · {len(kunden)} Kontakte · {len(all_orders)} Bestellungen · {len(produkte)} Produkte · {len(blogs)} Blog-Posts · {len(kampagnen)} Kampagnen
+// Stand: {now_iso[:10]} · {len(kunden)} Kontakte · {len(all_orders)} Bestellungen · {len(receipts_direkt)} Direktverkäufe · {len(produkte)} Produkte · Umsatz {total_umsatz:.2f}€
 // Automatisch generiert von scripts/wix_sync.py (GitHub Actions)
 // ══════════════════════════════════════════════════════════════════════════════
 (function initWixLiveDaten() {{
   if (localStorage.getItem('ew_wix_live_init') === '{now_iso[:10]}') return;
-  const KUNDEN     = {js(kunden)};
-  const RECHNUNGEN = {js(all_orders)};
-  const PRODUKTE   = {js(produkte)};
-  const BLOGS      = {js(blogs)};
-  const KAMPAGNEN  = {js(kampagnen)};
-  const WIX_CFG    = {{"siteId":"{SITE_ID}","connected":true,"lastSync":"{now_iso}","lastInitFrom":"GitHub-Actions-Daily-Sync"}};
+  const KUNDEN           = {js(kunden)};
+  const RECHNUNGEN       = {js(all_orders)};
+  const RECEIPTS_DIREKT  = {js(receipts_direkt)};
+  const PRODUKTE         = {js(produkte)};
+  const BLOGS            = {js(blogs)};
+  const KAMPAGNEN        = {js(kampagnen)};
+  const WIX_CFG          = {{"siteId":"{SITE_ID}","connected":true,"lastSync":"{now_iso}","lastInitFrom":"GitHub-Actions-Daily-Sync"}};
 
   function mergeByKey(existing, incoming, keyFn) {{
     const seen = new Set(existing.map(keyFn));
@@ -222,9 +260,10 @@ new_block = f"""
   }});
   localStorage.setItem('ew_kunden', JSON.stringify(kMerged));
 
-  // Rechnungen – nur neue hinzufügen
+  // Rechnungen: Online-Shop + Direktverkauf-Receipts zusammenführen
   const rEx = JSON.parse(localStorage.getItem('ew_rechnungen') || '[]');
-  localStorage.setItem('ew_rechnungen', JSON.stringify(mergeByKey(rEx, RECHNUNGEN, r => r.wixOrderId || r.id)));
+  const allR = mergeByKey(rEx, RECHNUNGEN, r => r.wixOrderId || r.id);
+  localStorage.setItem('ew_rechnungen', JSON.stringify(mergeByKey(allR, RECEIPTS_DIREKT, r => r.wixReceiptId || r.id)));
 
   // Produkte – immer überschreiben (Wix ist führend)
   localStorage.setItem('ew_produkte', JSON.stringify(PRODUKTE.length ? PRODUKTE : JSON.parse(localStorage.getItem('ew_produkte') || '[]')));
@@ -242,7 +281,7 @@ new_block = f"""
   localStorage.setItem('ew_wix_config', JSON.stringify(Object.assign({{}}, WIX_CFG, cfgEx.apiKey ? {{apiKey: cfgEx.apiKey}} : {{}})));
 
   localStorage.setItem('ew_wix_live_init', '{now_iso[:10]}');
-  console.log('[BENIQUE] Wix-Daten initialisiert: {len(kunden)} Kunden · {len(all_orders)} Bestellungen · {len(produkte)} Produkte · {len(blogs)} Blog-Posts · {len(kampagnen)} Kampagnen · Umsatz {total_umsatz:.2f} €');
+  console.log('[BENIQUE] Wix-Daten initialisiert: {len(kunden)} Kunden · {len(all_orders)} Shop-Bestellungen + {len(receipts_direkt)} Direktverkäufe · {len(produkte)} Produkte · Gesamtumsatz {total_umsatz:.2f} €');
 }})();"""
 
 # Alten Block finden und ersetzen
