@@ -1217,25 +1217,71 @@ tr:hover td { background: var(--bg-hover); }
 
   <!-- Rechnungen -->
   <div class="tab-content" id="vt-rechnungen">
-    <div class="grid grid-4" style="margin-bottom:16px">
-      <div class="kpi"><div class="label">Offen</div><div class="value wine" id="rech-offen-anz">0</div></div>
+    <!-- KPI gesamt -->
+    <div class="grid grid-4" style="margin-bottom:12px">
+      <div class="kpi"><div class="label">Offen (gesamt)</div><div class="value wine" id="rech-offen-anz">0</div></div>
       <div class="kpi"><div class="label">Offener Betrag</div><div class="value wine" id="rech-offen-sum">0,00 €</div></div>
-      <div class="kpi"><div class="label">Bezahlt (lfd.)</div><div class="value green" id="rech-bezahlt">0,00 €</div></div>
+      <div class="kpi"><div class="label">Bezahlt (gesamt)</div><div class="value green" id="rech-bezahlt">0,00 €</div></div>
       <div class="kpi"><div class="label">Überfällig</div><div class="value" id="rech-ueberfaellig">0</div></div>
     </div>
+    <!-- KPI gefiltert -->
+    <div class="grid grid-5" style="margin-bottom:16px">
+      <div class="kpi" style="border:1px solid var(--border)"><div class="label">📊 Gefiltert</div><div class="value" id="rech-f-total">0,00 €</div><div class="sub" id="rech-f-count" style="color:var(--text-dim);font-size:11px">0 Vorgänge</div></div>
+      <div class="kpi" style="border:1px solid var(--border)"><div class="label">👤 Privat</div><div class="value" id="rech-f-privat">0,00 €</div></div>
+      <div class="kpi" style="border:1px solid var(--border)"><div class="label">🏢 Handel</div><div class="value" id="rech-f-handel">0,00 €</div></div>
+      <div class="kpi" style="border:1px solid var(--border)"><div class="label">🍽️ Gastronomie</div><div class="value" id="rech-f-gastro">0,00 €</div></div>
+      <div class="kpi" style="border:1px solid var(--border)"><div class="label">🧾 Direktverkauf</div><div class="value" id="rech-f-direkt">0,00 €</div></div>
+    </div>
     <div class="card">
-      <div class="flex-center gap-8" style="margin-bottom:14px">
-        <button class="btn btn-primary btn-sm" onclick="openModal('modal-neue-rechnung')">+ Rechnung erstellen</button>
-        <button class="btn-import" onclick="openCsvImport('rechnungen')">📥 CSV Import</button>
-        <select style="padding:7px 10px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:var(--radius)" onchange="filterRechnungen(this.value)">
-          <option value="">Alle Status</option><option>Offen</option><option>Bezahlt</option><option>Überfällig</option><option>Storniert</option>
+      <!-- Aktionen + Filter -->
+      <div class="flex-center gap-8" style="margin-bottom:10px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-neue-rechnung')">+ Rechnung</button>
+        <button class="btn-import" onclick="openCsvImport('rechnungen')">📥 CSV</button>
+        <span style="flex:1"></span>
+        <span style="font-size:12px;font-weight:600;color:var(--text-dim)">Filter:</span>
+        <select id="rf-status" style="padding:6px 10px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);font-size:13px" onchange="applyRechnungenFilter()">
+          <option value="">Alle Status</option>
+          <option>Offen</option><option>Bezahlt</option><option>Überfällig</option><option>Storniert</option>
         </select>
+        <select id="rf-typ" style="padding:6px 10px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);font-size:13px" onchange="applyRechnungenFilter()">
+          <option value="">Alle Typen</option>
+          <option value="Privat">👤 Privat</option>
+          <option value="Handel">🏢 Handel</option>
+          <option value="Gastronomie">🍽️ Gastronomie</option>
+          <option value="Direktverkauf">🧾 Direktverkauf</option>
+        </select>
+        <select id="rf-jahr" style="padding:6px 10px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);font-size:13px" onchange="applyRechnungenFilter()">
+          <option value="">Alle Jahre</option>
+        </select>
+        <select id="rf-quartal" style="padding:6px 10px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);font-size:13px" onchange="applyRechnungenFilter()">
+          <option value="">Alle Quartale</option>
+          <option value="1">Q1 (Jan–Mär)</option>
+          <option value="2">Q2 (Apr–Jun)</option>
+          <option value="3">Q3 (Jul–Sep)</option>
+          <option value="4">Q4 (Okt–Dez)</option>
+        </select>
+        <select id="rf-monat" style="padding:6px 10px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);font-size:13px" onchange="applyRechnungenFilter()">
+          <option value="">Alle Monate</option>
+          <option value="01">Januar</option><option value="02">Februar</option><option value="03">März</option>
+          <option value="04">April</option><option value="05">Mai</option><option value="06">Juni</option>
+          <option value="07">Juli</option><option value="08">August</option><option value="09">September</option>
+          <option value="10">Oktober</option><option value="11">November</option><option value="12">Dezember</option>
+        </select>
+        <select id="rf-sort" style="padding:6px 10px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);font-size:13px" onchange="applyRechnungenFilter()">
+          <option value="datum-desc">↓ Datum (neu→alt)</option>
+          <option value="datum-asc">↑ Datum (alt→neu)</option>
+          <option value="betrag-desc">↓ Betrag (hoch→niedrig)</option>
+          <option value="betrag-asc">↑ Betrag (niedrig→hoch)</option>
+          <option value="kunde-asc">↑ Kunde (A→Z)</option>
+          <option value="kunde-desc">↓ Kunde (Z→A)</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="resetRechnungenFilter()" title="Filter zurücksetzen">✕ Reset</button>
       </div>
       <div class="table-wrap">
         <table id="tbl-rechnungen">
-          <thead><tr><th>Rech.-Nr.</th><th>Datum</th><th>Fällig am</th><th>Kunde</th><th>Brutto (€)</th><th>Status</th><th>Zahlungsart</th><th>Aktionen</th></tr></thead>
+          <thead><tr><th>Rech.-Nr.</th><th>Datum</th><th>Fällig</th><th>Kunde</th><th>Typ</th><th>Brutto (€)</th><th>Status</th><th>Quelle</th><th>Aktionen</th></tr></thead>
           <tbody id="rechnungen-body">
-            <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">Keine Rechnungen</td></tr>
+            <tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted)">Keine Rechnungen</td></tr>
           </tbody>
         </table>
       </div>
@@ -3228,22 +3274,8 @@ function saveRechnung() {
 }
 
 function renderRechnungen() {
-  const data=DB.rechnungen.slice().reverse();
-  updateRechnungKPIs();
-  const body=document.getElementById('rechnungen-body');
-  if(!data.length){ body.innerHTML='<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">Keine Rechnungen</td></tr>'; return; }
-  const sc={Offen:'badge-warn',Bezahlt:'badge-ok',Überfällig:'badge-error',Storniert:'badge-neutral'};
-  const today=new Date().toISOString().split('T')[0];
-  body.innerHTML=data.map(r=>{
-    const status=r.status==='Offen'&&r.faellig<today?'Überfällig':r.status;
-    return `<tr><td><b>${r.nr}</b></td><td>${r.datum}</td><td>${r.faellig||'–'}</td>
-    <td>${r.kundeName}</td><td><b>${fmtEur(r.brutto)}</b></td>
-    <td><span class="badge-status ${sc[status]||'badge-neutral'}">${status}</span></td>
-    <td>Überweisung</td>
-    <td class="td-actions">
-      ${r.status==='Offen'?`<button class="btn btn-secondary btn-sm" onclick="markiereRechnungBezahlt('${r.id}')">✓ Bezahlt</button>`:''}
-      <button class="btn btn-danger btn-sm" onclick="deleteItem('rechnungen','${r.id}',renderRechnungen)">🗑️</button>
-    </td></tr>`;}).join('');
+  initRechnungenJahrFilter();
+  applyRechnungenFilter();
 }
 
 function updateRechnungKPIs() {
@@ -3808,29 +3840,110 @@ function filterKunden(typ) {
       <button class="btn btn-danger btn-sm" onclick="deleteItem('kunden','${k.id}',renderKunden)">🗑️</button>
     </td></tr>`).join('');
 }
+// Compat: altes filterRechnungen leitet auf neues weiter
 function filterRechnungen(status) {
-  const today = new Date().toISOString().split('T')[0];
-  let data = DB.rechnungen.slice().reverse();
-  if(status) {
-    data = data.filter(r => {
-      const effectiveStatus = (r.status === 'Offen' && r.faellig < today) ? 'Überfällig' : r.status;
-      return effectiveStatus === status;
-    });
+  const sel = document.getElementById('rf-status');
+  if(sel && status !== undefined) sel.value = status || '';
+  applyRechnungenFilter();
+}
+
+function resetRechnungenFilter() {
+  ['rf-status','rf-typ','rf-jahr','rf-quartal','rf-monat'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  const rs = document.getElementById('rf-sort'); if(rs) rs.value = 'datum-desc';
+  applyRechnungenFilter();
+}
+
+function initRechnungenJahrFilter() {
+  const sel = document.getElementById('rf-jahr'); if(!sel) return;
+  const jahre = [...new Set(DB.rechnungen.map(r => (r.datum||'').slice(0,4)).filter(Boolean))].sort().reverse();
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Alle Jahre</option>' + jahre.map(j=>`<option value="${j}"${j===cur?' selected':''}>${j}</option>`).join('');
+}
+
+function applyRechnungenFilter() {
+  initRechnungenJahrFilter();
+  const status  = document.getElementById('rf-status')?.value  || '';
+  const typ     = document.getElementById('rf-typ')?.value     || '';
+  const jahr    = document.getElementById('rf-jahr')?.value    || '';
+  const quartal = document.getElementById('rf-quartal')?.value || '';
+  const monat   = document.getElementById('rf-monat')?.value   || '';
+  const sort    = document.getElementById('rf-sort')?.value    || 'datum-desc';
+  const today   = new Date().toISOString().split('T')[0];
+  const kunden  = DB.kunden;
+
+  let data = DB.rechnungen.slice();
+
+  // Hilfsfunktion: Kundentyp für eine Rechnung ermitteln
+  function getKundenTyp(r) {
+    if(r.quelle === 'Wix-Receipt') return 'Direktverkauf';
+    const k = kunden.find(k => k.email === r.email || k.name === r.kunde || k.id === r.kundeId);
+    return k?.typ || 'Privat';
   }
+  function getEffectiveStatus(r) {
+    return (r.status === 'Offen' && r.faellig && r.faellig < today) ? 'Überfällig' : r.status;
+  }
+
+  // Filter Status
+  if(status) data = data.filter(r => getEffectiveStatus(r) === status);
+  // Filter Kundentyp
+  if(typ) data = data.filter(r => getKundenTyp(r) === typ);
+  // Filter Jahr
+  if(jahr) data = data.filter(r => (r.datum||'').startsWith(jahr));
+  // Filter Quartal
+  if(quartal) {
+    const q = parseInt(quartal);
+    const qMonths = [(q-1)*3+1,(q-1)*3+2,(q-1)*3+3];
+    data = data.filter(r => qMonths.includes(parseInt((r.datum||'').slice(5,7))));
+  }
+  // Filter Monat
+  if(monat) data = data.filter(r => (r.datum||'').slice(5,7) === monat);
+
+  // Sortierung
+  const [sortKey, sortDir] = sort.split('-');
+  data.sort((a,b) => {
+    let av, bv;
+    if(sortKey==='datum')  { av=a.datum||''; bv=b.datum||''; return sortDir==='asc'?av.localeCompare(bv):bv.localeCompare(av); }
+    if(sortKey==='betrag') { av=parseFloat(a.brutto||0); bv=parseFloat(b.brutto||0); return sortDir==='asc'?av-bv:bv-av; }
+    if(sortKey==='kunde')  { av=a.kunde||''; bv=b.kunde||''; return sortDir==='asc'?av.localeCompare(bv,'de'):bv.localeCompare(av,'de'); }
+    return 0;
+  });
+
+  // KPI gefiltert berechnen
+  const bezahltData = data.filter(r => r.status === 'Bezahlt');
+  const summe = (arr) => arr.reduce((s,r)=>s+parseFloat(r.brutto||0),0);
+  const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  set('rech-f-total',   fmtEur(summe(bezahltData)));
+  set('rech-f-count',   data.length + ' Vorgänge');
+  set('rech-f-privat',  fmtEur(summe(bezahltData.filter(r=>getKundenTyp(r)==='Privat'))));
+  set('rech-f-handel',  fmtEur(summe(bezahltData.filter(r=>getKundenTyp(r)==='Handel'))));
+  set('rech-f-gastro',  fmtEur(summe(bezahltData.filter(r=>getKundenTyp(r)==='Gastronomie'))));
+  set('rech-f-direkt',  fmtEur(summe(data.filter(r=>r.quelle==='Wix-Receipt'))));
+
   updateRechnungKPIs();
+
   const body = document.getElementById('rechnungen-body');
-  if(!data.length){ body.innerHTML='<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">Keine Rechnungen für diesen Filter</td></tr>'; return; }
+  if(!data.length){ body.innerHTML='<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted)">Keine Einträge für diese Filterauswahl</td></tr>'; return; }
+
   const sc = {Offen:'badge-warn',Bezahlt:'badge-ok',Überfällig:'badge-error',Storniert:'badge-neutral'};
   body.innerHTML = data.map(r => {
-    const effectiveStatus = (r.status === 'Offen' && r.faellig < today) ? 'Überfällig' : r.status;
-    return `<tr><td><b>${r.nr}</b></td><td>${r.datum}</td><td>${r.faellig||'–'}</td>
-    <td>${r.kundeName}</td><td><b>${fmtEur(r.brutto)}</b></td>
-    <td><span class="badge-status ${sc[effectiveStatus]||'badge-neutral'}">${effectiveStatus}</span></td>
-    <td>Überweisung</td>
-    <td class="td-actions">
-      ${r.status==='Offen'?`<button class="btn btn-secondary btn-sm" onclick="markiereRechnungBezahlt('${r.id}')">✓ Bezahlt</button>`:''}
-      <button class="btn btn-danger btn-sm" onclick="deleteItem('rechnungen','${r.id}',renderRechnungen)">🗑️</button>
-    </td></tr>`;
+    const eff  = getEffectiveStatus(r);
+    const ktyp = getKundenTyp(r);
+    const typIcon = {Privat:'👤',Handel:'🏢',Gastronomie:'🍽️',Direktverkauf:'🧾'}[ktyp]||'';
+    return `<tr>
+      <td><b>${esc(r.nr)}</b></td>
+      <td>${r.datum||'–'}</td>
+      <td>${r.faellig||'–'}</td>
+      <td>${esc(r.kunde||r.kundeName||'–')}</td>
+      <td><span class="tag" style="font-size:11px">${typIcon} ${ktyp}</span></td>
+      <td><b>${fmtEur(r.brutto)}</b></td>
+      <td><span class="badge-status ${sc[eff]||'badge-neutral'}">${eff}</span></td>
+      <td style="font-size:11px;color:var(--text-dim)">${r.quelle==='Wix-Receipt'?'Wix-Direkt':r.quelle==='Wix'?'Wix-Shop':'Manuell'}</td>
+      <td class="td-actions">
+        ${r.status==='Offen'?`<button class="btn btn-secondary btn-sm" onclick="markiereRechnungBezahlt('${r.id}')">✓ Bezahlt</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('rechnungen','${r.id}',applyRechnungenFilter)">🗑️</button>
+      </td></tr>`;
   }).join('');
 }
 function filterDokumente(kat) {
